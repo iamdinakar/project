@@ -1,0 +1,1243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Project Resource Allocation Tracker</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color-scheme: light dark;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 1.5rem;
+      background: radial-gradient(circle at top left, #f5f5f5, #e5e5e5 40%, #dcdcdc);
+    }
+
+    .app {
+      max-width: 1000px;
+      margin: 0 auto;
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: 18px;
+      box-shadow: 0 18px 45px rgba(15, 23, 42, 0.18);
+      padding: 1.5rem 1.5rem 2rem;
+      backdrop-filter: blur(12px);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      body {
+        background: radial-gradient(circle at top left, #020617, #020617 40%, #020617);
+      }
+
+      .app {
+        background: rgba(15, 23, 42, 0.9);
+        color: #e5e7eb;
+      }
+
+      table {
+        border-color: #1f2937;
+      }
+
+      input,
+      textarea,
+      select {
+        background: #020617;
+        color: #e5e7eb;
+        border-color: #1f2937;
+      }
+
+      .pill {
+        background: rgba(15, 23, 42, 0.85);
+        color: #cbd5f5;
+      }
+
+      .analytics-section {
+        background: rgba(15, 23, 42, 0.8);
+        border-color: #1f2937;
+      }
+
+      .bar-track {
+        background: rgba(15, 23, 42, 0.9);
+      }
+
+      .analytics-empty {
+        color: #9ca3af;
+      }
+
+      .mode-toggle {
+        background: rgba(15, 23, 42, 0.7);
+      }
+
+      .mode-btn {
+        color: #9ca3af;
+      }
+
+      .mode-btn.active {
+        background: #e5e7eb;
+        color: #020617;
+      }
+
+      .summary-pill {
+        background: rgba(15, 23, 42, 0.7);
+        color: #e5e7eb;
+      }
+
+      .modal-dialog {
+        background: rgba(15, 23, 42, 0.98);
+      }
+
+      .modal-section {
+        background: rgba(15, 23, 42, 0.7);
+      }
+    }
+
+    h1 {
+      font-size: 1.6rem;
+      margin: 0 0 0.25rem;
+      letter-spacing: 0.02em;
+    }
+
+    .subtitle {
+      margin: 0 0 1rem;
+      font-size: 0.9rem;
+      color: #4b5563;
+    }
+
+    .pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .pill {
+      font-size: 0.78rem;
+      padding: 0.35rem 0.7rem;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.04);
+      color: #4b5563;
+    }
+
+    .bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.75rem;
+    }
+
+    .group-inline {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      align-items: center;
+    }
+
+    label {
+      font-size: 0.8rem;
+      color: #4b5563;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    textarea,
+    select {
+      border-radius: 999px;
+      border: 1px solid #d1d5db;
+      padding: 0.35rem 0.7rem;
+      font-size: 0.85rem;
+      outline: none;
+      min-width: 0;
+    }
+
+    textarea {
+      resize: vertical;
+      border-radius: 0.75rem;
+    }
+
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+
+    button {
+      border-radius: 999px;
+      border: none;
+      padding: 0.45rem 0.9rem;
+      font-size: 0.85rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      cursor: pointer;
+      background: #0f172a;
+      color: white;
+      box-shadow: 0 8px 20px rgba(15, 23, 42, 0.35);
+      transition: transform 0.08s ease, box-shadow 0.08s ease, opacity 0.12s ease;
+    }
+
+    button.secondary {
+      background: transparent;
+      color: #111827;
+      border: 1px dashed #d1d5db;
+      box-shadow: none;
+    }
+
+    button.danger {
+      background: #b91c1c;
+      box-shadow: 0 8px 18px rgba(185, 28, 28, 0.4);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      button.secondary {
+        color: #e5e7eb;
+        border-color: #374151;
+      }
+    }
+
+    button.small {
+      padding: 0.25rem 0.55rem;
+      font-size: 0.75rem;
+    }
+
+    button span.icon {
+      font-size: 1rem;
+      line-height: 1;
+    }
+
+    button:active {
+      transform: translateY(1px) scale(0.99);
+      box-shadow: 0 4px 8px rgba(15, 23, 42, 0.2);
+    }
+
+    .table-wrapper {
+      border-radius: 1rem;
+      border: 1px solid #e5e7eb;
+      overflow: hidden;
+      background: rgba(248, 250, 252, 0.9);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+
+    thead {
+      background: rgba(15, 23, 42, 0.03);
+    }
+
+    th,
+    td {
+      padding: 0.55rem 0.6rem;
+      border-bottom: 1px solid #e5e7eb;
+      vertical-align: middle;
+    }
+
+    th {
+      text-align: left;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #6b7280;
+      white-space: nowrap;
+    }
+
+    td input[type="text"],
+    td input[type="number"] {
+      width: 100%;
+    }
+
+    td button.small {
+      white-space: nowrap;
+    }
+
+    tfoot td {
+      border-bottom: none;
+      font-size: 0.78rem;
+      color: #6b7280;
+    }
+
+    .foot-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.75rem;
+      padding-top: 0.15rem;
+    }
+
+    .mono {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 0.75rem;
+    }
+
+    .hash-preview {
+      display: flex;
+      gap: 0.35rem;
+      align-items: center;
+      color: #4b5563;
+      max-width: 100%;
+      overflow: hidden;
+    }
+
+    .hash-preview code {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 0.2rem 0.5rem;
+      border-radius: 999px;
+      background: rgba(34, 197, 94, 0.09);
+      color: #16a34a;
+    }
+
+    .analytics-section {
+      margin-top: 1.1rem;
+      padding: 0.9rem 1rem 1.1rem;
+      border-radius: 1rem;
+      border: 1px dashed #e5e7eb;
+      background: rgba(248, 250, 252, 0.9);
+    }
+
+    .analytics-modebar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      margin-bottom: 0.5rem;
+    }
+
+    .mode-toggle {
+      display: inline-flex;
+      padding: 0.15rem;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.03);
+    }
+
+    .mode-btn {
+      background: transparent;
+      box-shadow: none;
+      padding: 0.25rem 0.7rem;
+      font-size: 0.78rem;
+      color: #4b5563;
+    }
+
+    .mode-btn.active {
+      background: #0f172a;
+      color: #f9fafb;
+    }
+
+    .threshold-control {
+      font-size: 0.72rem;
+      color: #6b7280;
+    }
+
+    .threshold-control input[type="number"] {
+      width: 3.2rem;
+      padding: 0.15rem 0.4rem;
+      font-size: 0.72rem;
+      border-radius: 0.5rem;
+    }
+
+    .analytics-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 0.75rem;
+      margin-bottom: 0.65rem;
+    }
+
+    .analytics-header h2 {
+      font-size: 0.95rem;
+      margin: 0 0 0.15rem;
+    }
+
+    .analytics-header p {
+      margin: 0;
+      font-size: 0.78rem;
+      color: #6b7280;
+    }
+
+    .analytics-summary {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      justify-content: flex-end;
+    }
+
+    .summary-pill {
+      font-size: 0.72rem;
+      padding: 0.25rem 0.5rem;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.03);
+      color: #4b5563;
+      display: inline-flex;
+      gap: 0.25rem;
+      align-items: baseline;
+    }
+
+    .summary-pill strong {
+      font-weight: 600;
+    }
+
+    .bars {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      margin-top: 0.4rem;
+    }
+
+    .bar-row {
+      display: grid;
+      grid-template-columns: minmax(80px, 140px) minmax(0, 1fr) max-content;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.78rem;
+    }
+
+    .bar-row.over-util .bar-metrics {
+      color: #b91c1c;
+      font-weight: 600;
+    }
+
+    .bar-label {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      color: #4b5563;
+    }
+
+    .bar-track {
+      position: relative;
+      height: 0.6rem;
+      border-radius: 999px;
+      background: rgba(148, 163, 184, 0.25);
+      overflow: hidden;
+    }
+
+    .bar-seg {
+      position: absolute;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      border-radius: 999px;
+    }
+
+    .bar-used {
+      mix-blend-mode: multiply;
+    }
+
+    .bar-free {
+      opacity: 0.5;
+    }
+
+    .bar-row.over-util .bar-used {
+      box-shadow: 0 0 0 1px rgba(220, 38, 38, 0.45);
+    }
+
+    .bar-metrics {
+      font-size: 0.72rem;
+      white-space: nowrap;
+      color: #4b5563;
+    }
+
+    .analytics-legend {
+      margin-top: 0.5rem;
+      font-size: 0.7rem;
+      color: #6b7280;
+      display: flex;
+      gap: 0.75rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .legend-dot {
+      display: inline-block;
+      width: 0.6rem;
+      height: 0.6rem;
+      border-radius: 999px;
+      margin-right: 0.25rem;
+    }
+
+    .analytics-empty {
+      font-size: 0.78rem;
+      color: #6b7280;
+    }
+
+    /* Modal for JSON import/export */
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.45);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+      z-index: 50;
+    }
+
+    .modal.open {
+      display: flex;
+    }
+
+    .modal-dialog {
+      max-width: 420px;
+      width: 100%;
+      background: rgba(255, 255, 255, 0.97);
+      border-radius: 1rem;
+      box-shadow: 0 20px 45px rgba(15, 23, 42, 0.4);
+      padding: 1rem 1.1rem 1rem;
+    }
+
+    .modal-header,
+    .modal-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+    }
+
+    .modal-header h2 {
+      font-size: 0.95rem;
+      margin: 0;
+    }
+
+    .modal-body {
+      margin: 0.75rem 0;
+      font-size: 0.8rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .modal-section {
+      padding: 0.6rem 0.65rem;
+      border-radius: 0.75rem;
+      background: rgba(248, 250, 252, 0.9);
+    }
+
+    .modal-section h3 {
+      font-size: 0.8rem;
+      margin: 0 0 0.25rem;
+    }
+
+    .modal-section p {
+      margin: 0 0 0.35rem;
+      color: #6b7280;
+      font-size: 0.75rem;
+    }
+
+    .modal-status {
+      font-size: 0.75rem;
+      color: #6b7280;
+      min-height: 1em;
+    }
+
+    @media (max-width: 720px) {
+      body {
+        padding: 0.75rem;
+      }
+
+      .app {
+        padding: 1rem;
+      }
+
+      table {
+        font-size: 0.78rem;
+      }
+
+      th,
+      td {
+        padding: 0.45rem 0.4rem;
+      }
+
+      .bar {
+        gap: 0.5rem;
+      }
+
+      .group-inline {
+        width: 100%;
+        justify-content: space-between;
+      }
+
+      .analytics-modebar {
+        align-items: flex-start;
+      }
+
+      .bar-row {
+        grid-template-columns: minmax(70px, 110px) minmax(0, 1fr);
+        grid-template-rows: auto auto;
+      }
+
+      .bar-metrics {
+        grid-column: 1 / -1;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <h1>Project Resource Allocation Tracker</h1>
+      <p class="subtitle">All state is stored in the URL hash. Change the table, and the link updates — paste the same
+        link to restore the allocations.</p>
+      <div class="pill-row">
+        <div class="pill">✅ One-file HTML — no backend required</div>
+        <div class="pill">🔗 Shareable link encodes your data</div>
+        <div class="pill">📊 Workload & capacity visualizer</div>
+        <div class="pill">📦 JSON import/export</div>
+      </div>
+    </header>
+
+    <section class="bar" aria-label="Quick actions">
+      <div class="group-inline">
+        <button id="addRowBtn" type="button">
+          <span class="icon">＋</span>
+          <span>Add row</span>
+        </button>
+        <button id="clearBtn" class="secondary" type="button">
+          <span class="icon">🧹</span>
+          <span>New empty sheet</span>
+        </button>
+      </div>
+      <div class="group-inline">
+        <button id="copyLinkBtn" type="button">
+          <span class="icon">🔗</span>
+          <span>Copy link with hash</span>
+        </button>
+        <button id="jsonBtn" type="button">
+          <span class="icon">⇅</span>
+          <span>JSON import / export</span>
+        </button>
+      </div>
+    </section>
+
+    <section class="table-wrapper" aria-label="Allocations table">
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 20%">Resource</th>
+            <th style="width: 22%">Project</th>
+            <th style="width: 12%">Allocated (h)</th>
+            <th style="width: 12%">Used (h)</th>
+            <th>Notes</th>
+            <th style="width: 1%"></th>
+          </tr>
+        </thead>
+        <tbody id="rows"></tbody>
+        <tfoot>
+          <tr>
+            <td colspan="6">
+              <div class="foot-row">
+                <span class="mono">
+                  Rows: <span id="rowCount">0</span>
+                  | Last update: <span id="lastUpdated">—</span>
+                </span>
+                <span class="hash-preview mono">
+                  <span class="badge">HASH LIVE</span>
+                  <code id="hashSnippet">#</code>
+                </span>
+              </div>
+            </td>
+          </tr>
+        </tfoot>
+      </table>
+    </section>
+
+    <section class="analytics-section" aria-label="Workload visualizer">
+      <div class="analytics-modebar">
+        <div class="mode-toggle" role="tablist" aria-label="View mode">
+          <button type="button" class="mode-btn active" data-mode="resource">By resource</button>
+          <button type="button" class="mode-btn" data-mode="project">By project</button>
+        </div>
+        <div class="threshold-control">
+          <label class="mono">
+            Highlight over
+            <input id="utilThreshold" type="number" min="0" max="300" step="5" value="90" />
+            % used
+          </label>
+        </div>
+      </div>
+      <div id="visualizer"></div>
+    </section>
+
+    <section style="margin-top: 1rem; font-size: 0.78rem; color: #6b7280;">
+      <strong>Tip:</strong> Use Allocated/Used as hours per sprint, week, or month — just stay consistent. The visualizer
+      can switch between per-resource and per-project views, highlights anything over your utilisation threshold, and
+      shows free capacity stacked against used hours.
+    </section>
+  </div>
+
+  <!-- JSON import/export modal -->
+  <div id="jsonModal" class="modal" aria-hidden="true">
+    <div class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="jsonModalTitle">
+      <div class="modal-header">
+        <h2 id="jsonModalTitle">JSON import / export</h2>
+        <button type="button" id="jsonModalClose" class="small secondary">
+          <span class="icon">✕</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="modal-section">
+          <h3>Download current sheet</h3>
+          <p>Exports allocations, mode, and threshold into a single JSON file. You can later re-import the same file to
+            restore this state.</p>
+          <button type="button" id="jsonDownloadBtn">
+            <span class="icon">💾</span>
+            <span>Download JSON</span>
+          </button>
+        </div>
+        <div class="modal-section">
+          <h3>Upload JSON</h3>
+          <p>Select a JSON file previously exported from this tool (or matching the same structure) to replace the current
+            sheet and update the URL hash.</p>
+          <input type="file" id="jsonFileInput" accept="application/json,.json" />
+          <div style="margin-top: 0.4rem; display: flex; gap: 0.4rem; align-items: center;">
+            <button type="button" id="jsonUploadBtn" class="small">
+              <span class="icon">⬆</span>
+              <span>Load JSON</span>
+            </button>
+            <span class="mono" style="font-size: 0.7rem; color: #6b7280;">Current data will be replaced.</span>
+          </div>
+        </div>
+        <div id="jsonStatus" class="modal-status"></div>
+      </div>
+      <div class="modal-footer">
+        <span class="mono" style="font-size: 0.7rem; color: #6b7280;">Tip: store JSON in git to version allocation
+          plans.</span>
+        <button type="button" id="jsonModalCloseFooter" class="small secondary">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      const rowsTbody = document.getElementById("rows");
+      const addRowBtn = document.getElementById("addRowBtn");
+      const clearBtn = document.getElementById("clearBtn");
+      const copyLinkBtn = document.getElementById("copyLinkBtn");
+      const jsonBtn = document.getElementById("jsonBtn");
+      const rowCountEl = document.getElementById("rowCount");
+      const lastUpdatedEl = document.getElementById("lastUpdated");
+      const hashSnippetEl = document.getElementById("hashSnippet");
+      const visualizerEl = document.getElementById("visualizer");
+      const modeButtons = document.querySelectorAll(".mode-btn");
+      const thresholdInput = document.getElementById("utilThreshold");
+
+      const jsonModal = document.getElementById("jsonModal");
+      const jsonModalClose = document.getElementById("jsonModalClose");
+      const jsonModalCloseFooter = document.getElementById("jsonModalCloseFooter");
+      const jsonDownloadBtn = document.getElementById("jsonDownloadBtn");
+      const jsonFileInput = document.getElementById("jsonFileInput");
+      const jsonUploadBtn = document.getElementById("jsonUploadBtn");
+      const jsonStatus = document.getElementById("jsonStatus");
+
+      let lastJson = "";
+      let suppressHashHandler = false;
+      let currentMode = "resource"; // "resource" | "project"
+
+      function nowIso() {
+        const d = new Date();
+        return d.toISOString().slice(0, 19).replace("T", " ") + "Z";
+      }
+
+      function createCellInput(type, placeholder) {
+        const input = document.createElement("input");
+        input.type = type;
+        input.placeholder = placeholder || "";
+        if (type === "number") {
+          input.min = "0";
+          input.step = "0.25";
+        }
+        input.addEventListener("input", scheduleSave);
+        return input;
+      }
+
+      function addRow(data) {
+        const tr = document.createElement("tr");
+
+        const tdResource = document.createElement("td");
+        const tdProject = document.createElement("td");
+        const tdAllocated = document.createElement("td");
+        const tdUsed = document.createElement("td");
+        const tdNotes = document.createElement("td");
+        const tdRemove = document.createElement("td");
+
+        const resourceInput = createCellInput("text", "e.g. Alex");
+        const projectInput = createCellInput("text", "e.g. API v2");
+        const allocatedInput = createCellInput("number", "40");
+        const usedInput = createCellInput("number", "32");
+        const notesInput = createCellInput("text", "Optional notes");
+
+        if (data) {
+          resourceInput.value = data.resource || "";
+          projectInput.value = data.project || "";
+          // Backwards compatible with old "allocation" field
+          const allocatedVal = data.allocated != null ? data.allocated : data.allocation;
+          allocatedInput.value = allocatedVal || "";
+          usedInput.value = data.used || "";
+          notesInput.value = data.notes || "";
+        }
+
+        tdResource.appendChild(resourceInput);
+        tdProject.appendChild(projectInput);
+        tdAllocated.appendChild(allocatedInput);
+        tdUsed.appendChild(usedInput);
+        tdNotes.appendChild(notesInput);
+
+        const removeBtn = document.createElement("button");
+        removeBtn.type = "button";
+        removeBtn.className = "small secondary";
+        removeBtn.innerHTML = '<span class="icon">✕</span><span>Remove</span>';
+        removeBtn.addEventListener("click", () => {
+          tr.remove();
+          scheduleSave();
+        });
+        tdRemove.appendChild(removeBtn);
+
+        tr.appendChild(tdResource);
+        tr.appendChild(tdProject);
+        tr.appendChild(tdAllocated);
+        tr.appendChild(tdUsed);
+        tr.appendChild(tdNotes);
+        tr.appendChild(tdRemove);
+
+        rowsTbody.appendChild(tr);
+        updateRowCount();
+
+        return tr;
+      }
+
+      function getThreshold() {
+        if (!thresholdInput) return 90;
+        const t = parseFloat(thresholdInput.value);
+        if (Number.isFinite(t)) return t;
+        return 90;
+      }
+
+      function getState() {
+        const rows = [];
+        const trs = rowsTbody.querySelectorAll("tr");
+        trs.forEach(tr => {
+          const inputs = tr.querySelectorAll("input");
+          const [resourceInput, projectInput, allocatedInput, usedInput, notesInput] = inputs;
+          const resource = (resourceInput.value || "").trim();
+          const project = (projectInput.value || "").trim();
+          const allocated = (allocatedInput.value || "").trim();
+          const used = (usedInput.value || "").trim();
+          const notes = (notesInput.value || "").trim();
+          if (resource || project || allocated || used || notes) {
+            rows.push({ resource, project, allocated, used, notes });
+          }
+        });
+        const state = {
+          v: 4,
+          rows,
+          mode: currentMode
+        };
+        if (thresholdInput) {
+          state.threshold = getThreshold();
+        }
+        return state;
+      }
+
+      let saveTimer = null;
+      function scheduleSave() {
+        if (saveTimer) window.clearTimeout(saveTimer);
+        saveTimer = window.setTimeout(saveStateToHash, 160);
+      }
+
+      function saveStateToHash() {
+        saveTimer = null;
+        const state = getState();
+        const json = JSON.stringify(state);
+        lastJson = json;
+        const encoded = safeB64Encode(json);
+        const newHash = "#data=" + encoded;
+
+        suppressHashHandler = true;
+        window.location.hash = newHash;
+        window.setTimeout(() => { suppressHashHandler = false; }, 50);
+
+        updateMeta(newHash);
+        updateAnalytics(state);
+      }
+
+      function safeB64Encode(str) {
+        try {
+          return btoa(unescape(encodeURIComponent(str)));
+        } catch (e) {
+          console.warn("Fallback encode", e);
+          return btoa(str);
+        }
+      }
+
+      function safeB64Decode(str) {
+        try {
+          return decodeURIComponent(escape(atob(str)));
+        } catch (e) {
+          console.warn("Fallback decode", e);
+          return atob(str);
+        }
+      }
+
+      function clearTable() {
+        rowsTbody.innerHTML = "";
+        addRow();
+        scheduleSave();
+      }
+
+      function applyModeFromState(state) {
+        if (state && state.mode === "project") {
+          currentMode = "project";
+        } else {
+          currentMode = "resource";
+        }
+        modeButtons.forEach(btn => {
+          btn.classList.toggle("active", btn.dataset.mode === currentMode);
+        });
+        if (thresholdInput && typeof state?.threshold === "number") {
+          thresholdInput.value = String(state.threshold);
+        }
+      }
+
+      function loadFromHash() {
+        const hash = window.location.hash.replace(/^#/, "");
+        if (!hash) {
+          clearTable();
+          updateMeta("#");
+          updateAnalytics(getState());
+          return;
+        }
+
+        let encoded = hash;
+        const prefix = "data=";
+        if (encoded.startsWith(prefix)) {
+          encoded = encoded.slice(prefix.length);
+        }
+
+        try {
+          const json = safeB64Decode(encoded);
+          const state = JSON.parse(json);
+
+          rowsTbody.innerHTML = "";
+          if (state && Array.isArray(state.rows) && state.rows.length) {
+            state.rows.forEach(r => addRow(r));
+          } else {
+            addRow();
+          }
+          lastJson = json;
+          applyModeFromState(state);
+          updateMeta("#" + hash);
+          updateAnalytics(state);
+        } catch (e) {
+          console.error("Failed to parse hash state", e);
+          rowsTbody.innerHTML = "";
+          addRow();
+          updateMeta("#");
+          updateAnalytics(getState());
+        }
+      }
+
+      function updateRowCount() {
+        const count = rowsTbody.querySelectorAll("tr").length;
+        rowCountEl.textContent = String(count);
+      }
+
+      function updateMeta(currentHash) {
+        updateRowCount();
+        lastUpdatedEl.textContent = nowIso();
+        const snippet = currentHash.length > 40
+          ? currentHash.slice(0, 40) + "…"
+          : currentHash || "#";
+        hashSnippetEl.textContent = snippet;
+      }
+
+      function escapeHtml(value) {
+        return String(value)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#39;");
+      }
+
+      function updateAnalytics(state) {
+        if (!visualizerEl) return;
+
+        const rows = (state && Array.isArray(state.rows)) ? state.rows : [];
+        const groups = new Map();
+        let totalAllocated = 0;
+        let totalUsed = 0;
+
+        rows.forEach(row => {
+          const resourceName = row.resource && row.resource.trim() ? row.resource.trim() : "(Unassigned resource)";
+          const projectName = row.project && row.project.trim() ? row.project.trim() : "(Unassigned project)";
+          const key = currentMode === "project" ? projectName : resourceName;
+
+          const allocated = parseFloat(row.allocated != null && row.allocated !== "" ? row.allocated : row.allocation || "0") || 0;
+          const used = parseFloat(row.used || "0") || 0;
+
+          if (!groups.has(key)) {
+            groups.set(key, { allocated: 0, used: 0 });
+          }
+          const rec = groups.get(key);
+          rec.allocated += allocated;
+          rec.used += used;
+
+          totalAllocated += allocated;
+          totalUsed += used;
+        });
+
+        const entries = Array.from(groups.entries());
+        const groupCount = entries.length;
+        const avgUtil = totalAllocated > 0 ? Math.round((totalUsed / totalAllocated) * 100) : 0;
+        const threshold = getThreshold();
+
+        if (!entries.length) {
+          visualizerEl.innerHTML = '<p class="analytics-empty">Add hours to Allocated/Used to see ' +
+            (currentMode === "project" ? 'per-project' : 'per-resource') + ' workload bars.</p>';
+          return;
+        }
+
+        const rowsHtml = entries.map(([name, rec]) => {
+          const capacity = rec.allocated;
+          const used = rec.used;
+          const util = capacity > 0 ? Math.round((used / capacity) * 100) : 0;
+          const free = Math.max(0, capacity - used);
+          const over = Math.max(0, used - capacity);
+
+          let usedPercent = 0;
+          let freePercent = 0;
+          if (capacity > 0) {
+            const ratio = used / capacity;
+            if (ratio <= 1) {
+              usedPercent = ratio * 100;
+              freePercent = (1 - ratio) * 100;
+            } else {
+              usedPercent = 100;
+              freePercent = 0;
+            }
+          } else if (used > 0) {
+            usedPercent = 100;
+          }
+
+          const overClass = (util > threshold || over > 0) ? " over-util" : "";
+
+          let metricsText;
+          if (over > 0) {
+            metricsText = used.toFixed(1) + ' / ' + capacity.toFixed(1) + 'h (' + util + '% used, ' + over.toFixed(1) + 'h over)';
+          } else {
+            metricsText = used.toFixed(1) + ' / ' + capacity.toFixed(1) + 'h (' + util + '% used, ' + free.toFixed(1) + 'h free)';
+          }
+
+          return (
+            '<div class="bar-row' + overClass + '">' +
+            '<div class="bar-label">' + escapeHtml(name) + '</div>' +
+            '<div class="bar-track">' +
+            '<div class="bar-seg bar-used" style="width:' + usedPercent + '%"></div>' +
+            (freePercent > 0
+              ? '<div class="bar-seg bar-free" style="left:' + usedPercent + '%;width:' + freePercent + '%"></div>'
+              : '') +
+            '</div>' +
+            '<div class="bar-metrics">' + metricsText + '</div>' +
+            '</div>'
+          );
+        }).join("");
+
+        const groupLabel = currentMode === "project" ? "Projects" : "Resources";
+        const modeLabel = currentMode === "project" ? "project" : "resource";
+
+        visualizerEl.innerHTML = (
+          '<div class="analytics-header">' +
+          '<div>' +
+          '<h2>Workload & capacity</h2>' +
+          '<p>Used vs free capacity within allocated hours per ' + modeLabel + '.</p>' +
+          '</div>' +
+          '<div class="analytics-summary">' +
+          '<span class="summary-pill">' + groupLabel + ': <strong>' + groupCount + '</strong></span>' +
+          '<span class="summary-pill">Allocated: <strong>' + totalAllocated.toFixed(1) + 'h</strong></span>' +
+          '<span class="summary-pill">Used: <strong>' + totalUsed.toFixed(1) + 'h</strong></span>' +
+          '<span class="summary-pill">Avg. util: <strong>' + avgUtil + '%</strong></span>' +
+          '</div>' +
+          '</div>' +
+          '<div class="bars">' + rowsHtml + '</div>' +
+          '<div class="analytics-legend">' +
+          '<span><span class="legend-dot legend-used"></span>Used hours</span>' +
+          '<span><span class="legend-dot legend-free"></span>Free capacity</span>' +
+          '<span>Over ' + threshold + '% used or over allocated is highlighted.</span>' +
+          '</div>'
+        );
+
+        // Color styles inline so they work in both light/dark without extra rules
+        const usedDots = visualizerEl.querySelectorAll('.legend-used, .bar-used');
+        const freeDots = visualizerEl.querySelectorAll('.legend-free, .bar-free');
+        usedDots.forEach(el => { el.style.background = '#22c55e'; });
+        freeDots.forEach(el => { el.style.background = '#e5e7eb'; });
+      }
+
+      // Mode toggle events
+      modeButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+          const mode = btn.dataset.mode === 'project' ? 'project' : 'resource';
+          if (mode === currentMode) return;
+          currentMode = mode;
+          modeButtons.forEach(b => b.classList.toggle('active', b === btn));
+          scheduleSave();
+        });
+      });
+
+      if (thresholdInput) {
+        thresholdInput.addEventListener('input', () => {
+          scheduleSave();
+        });
+      }
+
+      addRowBtn.addEventListener("click", () => {
+        const tr = addRow();
+        const firstInput = tr.querySelector("input");
+        if (firstInput) firstInput.focus();
+        scheduleSave();
+      });
+
+      clearBtn.addEventListener("click", () => {
+        if (!window.confirm("Start a fresh, empty sheet? This will replace the current hash in the link.")) {
+          return;
+        }
+        clearTable();
+      });
+
+      copyLinkBtn.addEventListener("click", async () => {
+        const url = window.location.href;
+        try {
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            await navigator.clipboard.writeText(url);
+            alert("Link copied to clipboard! Share it to restore this allocation view.");
+          } else {
+            throw new Error("Clipboard API unavailable");
+          }
+        } catch (e) {
+          console.warn("Clipboard error", e);
+          window.prompt("Copy this URL:", url);
+        }
+      });
+
+      // JSON modal helpers
+      function openJsonModal() {
+        if (!jsonModal) return;
+        jsonModal.classList.add('open');
+        jsonModal.setAttribute('aria-hidden', 'false');
+        if (jsonStatus) jsonStatus.textContent = '';
+      }
+
+      function closeJsonModal() {
+        if (!jsonModal) return;
+        jsonModal.classList.remove('open');
+        jsonModal.setAttribute('aria-hidden', 'true');
+        if (jsonFileInput) jsonFileInput.value = '';
+      }
+
+      if (jsonBtn) {
+        jsonBtn.addEventListener('click', openJsonModal);
+      }
+
+      if (jsonModalClose) {
+        jsonModalClose.addEventListener('click', closeJsonModal);
+      }
+
+      if (jsonModalCloseFooter) {
+        jsonModalCloseFooter.addEventListener('click', closeJsonModal);
+      }
+
+      if (jsonModal) {
+        jsonModal.addEventListener('click', (event) => {
+          if (event.target === jsonModal) {
+            closeJsonModal();
+          }
+        });
+      }
+
+      if (jsonDownloadBtn) {
+        jsonDownloadBtn.addEventListener('click', () => {
+          const state = getState();
+          const json = JSON.stringify(state, null, 2);
+          const blob = new Blob([json], { type: "application/json" });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = "resource-allocations.json";
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+          if (jsonStatus) jsonStatus.textContent = 'Downloaded current JSON.';
+        });
+      }
+
+      if (jsonUploadBtn) {
+        jsonUploadBtn.addEventListener('click', () => {
+          if (!jsonFileInput || !jsonFileInput.files || !jsonFileInput.files[0]) {
+            if (jsonStatus) jsonStatus.textContent = 'Choose a JSON file first.';
+            return;
+          }
+          const file = jsonFileInput.files[0];
+          const reader = new FileReader();
+          reader.onload = () => {
+            try {
+              const text = String(reader.result || '');
+              const parsed = JSON.parse(text);
+              if (!parsed || !Array.isArray(parsed.rows)) {
+                throw new Error('Invalid JSON structure');
+              }
+
+              rowsTbody.innerHTML = '';
+              parsed.rows.forEach(r => addRow(r));
+
+              if (typeof parsed.mode === 'string') {
+                currentMode = parsed.mode === 'project' ? 'project' : 'resource';
+              }
+              if (typeof parsed.threshold === 'number' && thresholdInput) {
+                thresholdInput.value = String(parsed.threshold);
+              }
+              modeButtons.forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.mode === currentMode);
+              });
+
+              if (jsonStatus) jsonStatus.textContent = 'JSON loaded. Hash and chart will update.';
+              scheduleSave();
+            } catch (err) {
+              console.error(err);
+              if (jsonStatus) jsonStatus.textContent = 'Could not parse JSON file.';
+            }
+          };
+          reader.readAsText(file);
+        });
+      }
+
+      window.addEventListener("hashchange", () => {
+        if (suppressHashHandler) return;
+        loadFromHash();
+      });
+
+      // Initial load
+      loadFromHash();
+    })();
+  </script>
+</body>
+</html>
